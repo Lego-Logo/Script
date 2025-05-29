@@ -18,58 +18,26 @@ local Window = Fluent:CreateWindow({
 })
 
 
+-- ✅ สร้าง Tabs แบบถูกต้อง
 local Tabs = {
-    Main = Window:AddTab({ Title = "Main", Icon = "box" }),
-    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" }),
+    Macro = Window:AddTab({ Title = "Macro", Icon = "film" }),
+    Game = Window:AddTab({ Title = "Game", Icon = "game" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
--- ✅ UI Components (Toggle / Slider / Input / Dropdown / Keybind)
-Tabs.Main:AddToggle("TestToggle", {
-    Title = "🟢 Auto Test Toggle",
-    Default = false,
-    Callback = function(state)
-        print("Toggle State:", state)
-    end
+-- END ตัวแปร ทั้งหมดที่จำเป็นของ UI -----------------------------------------------------
+
+
+
+-- ✅ เพิ่มเนื้อหา Dummy ทดสอบในแต่ละ Tab
+Tabs.Macro:AddParagraph({
+    Title = "Macro",
+    Content = "📝 หน้านี้สำหรับ Macro Recorder/Playback"
 })
 
-Tabs.Main:AddSlider("TestSlider", {
-    Title = "🎚️ Test Slider",
-    Description = "Slider for test",
-    Default = 50,
-    Min = 0,
-    Max = 100,
-    Rounding = 0,
-    Callback = function(value)
-        print("Slider Value:", value)
-    end
-})
-
-Tabs.Main:AddInput("TestInput", {
-    Title = "⌨️ Test Input",
-    Placeholder = "Enter something...",
-    Numeric = false,
-    Callback = function(text)
-        print("Input Text:", text)
-    end
-})
-
-Tabs.Main:AddDropdown("TestDropdown", {
-    Title = "📋 Test Dropdown",
-    Values = { "One", "Two", "Three" },
-    Multi = false,
-    Default = "One",
-    Callback = function(val)
-        print("Dropdown:", val)
-    end
-})
-
-Tabs.Main:AddKeybind("TestKey", {
-    Title = "🧷 Test Keybind",
-    Mode = "Toggle",
-    Default = Enum.KeyCode.F,
-    Callback = function()
-        print("Keybind F Pressed")
-    end
+Tabs.Game:AddParagraph({
+    Title = "Game",
+    Content = "🎮 หน้านี้สำหรับระบบ Replay, AutoVote"
 })
 
 Tabs.Settings:AddParagraph({
