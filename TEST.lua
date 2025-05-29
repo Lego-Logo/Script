@@ -9,7 +9,7 @@ local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.
 -- ✅ สร้างหน้าต่าง Fluent
 local Window = Fluent:CreateWindow({
     Title = "ZSOFT HUB",
-    SubTitle = "TEST",
+    SubTitle = "SpongeBob Tower Defense",
     TabWidth = 160,
     Size = UDim2.fromOffset(520, 400),
     Acrylic = false,
@@ -18,14 +18,10 @@ local Window = Fluent:CreateWindow({
 })
 
 
--- ✅ สร้าง Tabs แบบถูกต้อง
 local Tabs = {
     Main = Window:AddTab({ Title = "Main", Icon = "box" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" }),
 }
-
--- END ตัวแปร ทั้งหมดที่จำเป็นของ UI -----------------------------------------------------
-
 
 -- ✅ UI Components (Toggle / Slider / Input / Dropdown / Keybind)
 Tabs.Main:AddToggle("TestToggle", {
@@ -76,63 +72,41 @@ Tabs.Main:AddKeybind("TestKey", {
     end
 })
 
-
-
-
----  END TABS: SETTINGS -----------------------------------------------------------------------
-
-Tabs.Settings:AddParagraph({
-    Title = "Settings",
-    Content = "⚙️ การตั้งค่า Config, Theme ฯลฯ"
-})
----  END TABS: SETTINGS -----------------------------------------------------------------------
-
-
-
--- ✅ สร้างโฟลเดอร์ก่อนใช้ SaveManager / InterfaceManager
-local folder = "ZSOFT HUB - TEST"
-if not isfolder(folder) then
-    makefolder(folder)
-end
-if not isfolder(folder .. "/settings") then
-    makefolder(folder .. "/settings")
-end
-
 -- ✅ ติดตั้ง Fluent Library ให้ SaveManager/InterfaceManager
 local successCfg = pcall(function()
     SaveManager:SetLibrary(Fluent)
     InterfaceManager:SetLibrary(Fluent)
 
     SaveManager:IgnoreThemeSettings()
-    SaveManager:SetFolder(folder)
-    InterfaceManager:SetFolder(folder)
+    SaveManager:SetFolder("ZSOFT HUB - TEST")
+    InterfaceManager:SetFolder("ZSOFT HUB - TEST")
 
     InterfaceManager:BuildInterfaceSection(Tabs.Settings)
     SaveManager:BuildConfigSection(Tabs.Settings)
-
-    SaveManager:LoadAutoloadConfig()
 end)
 
-
-
+if successCfg then
+    print("✅ [Settings] โหลด SaveManager/InterfaceManager เสร็จ")
+else
+    warn("⚠️ [Settings] โหลด Config UI ล้มเหลว")
+end
 
 -- ✅ เปิดแท็บ Macro ทันทีเพื่อแก้ปัญหาว่างเปล่า
 Window:SelectTab(1)
+print("✅ [Fix] เปิด Tab Macro โดยอัตโนมัติสำเร็จ")
 
 -- ✅ แจ้งเตือนตอนโหลดเสร็จ
 Fluent:Notify({
     Title = "ZSOFT HUB",
-    Content = "ZSOFT HUB - TEST Ready",
+    Content = "SpongeBob Macro UI โหลดสำเร็จแล้ว 🎉",
     Duration = 5
 })
 
 
----- AUTO SAVE / AUTO LOAD CONFIG --------------------------------
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
-local playerName = LocalPlayer.Name
 
-local folder = "ZSOFT HUB - SpongeBobTD"
+---- AUTO SAVE / AUTO LOAD CONFIG --------------------------------
+local playerName = game.Players.LocalPlayer.Name
+local folder = "ZSOFT HUB - TEST"
 local autoloadPath = folder .. "/settings/autoload.txt"
 
 -- ✅ ตั้งค่าเริ่มต้น
@@ -191,11 +165,12 @@ for flagName, flagData in pairs(Fluent.Flags or {}) do
     end
 end
 
--- ✅ สำรองข้อมูลทุก 5 วิ
+-- ✅ สำรองข้อมูลทุก 30 วิ
 task.spawn(function()
     while true do
-        task.wait(5)
+        task.wait(30)
         SaveManager:Save(playerName)
+        --print("🕒 AutoSaved every 30s for", playerName)
     end
 end)
 ---- END AUTO SAVE / AUTO LOAD CONFIG --------------------------------
