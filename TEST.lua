@@ -9,7 +9,7 @@ local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.
 -- ✅ สร้างหน้าต่าง Fluent
 local Window = Fluent:CreateWindow({
     Title = "ZSOFT HUB",
-    SubTitle = "TEST",
+    SubTitle = "SpongeBob Tower Defense",
     TabWidth = 160,
     Size = UDim2.fromOffset(520, 400),
     Acrylic = false,
@@ -20,74 +20,49 @@ local Window = Fluent:CreateWindow({
 
 -- ✅ สร้าง Tabs แบบถูกต้อง
 local Tabs = {
-    Main = Window:AddTab({ Title = "Main", Icon = "box" }),
-    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" }),
+    Macro = Window:AddTab({ Title = "Macro", Icon = "film" }),
+    Game = Window:AddTab({ Title = "Game", Icon = "game" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
 -- END ตัวแปร ทั้งหมดที่จำเป็นของ UI -----------------------------------------------------
 
 
--- ✅ UI Components (Toggle / Slider / Input / Dropdown / Keybind)
-Tabs.Main:AddToggle("TestToggle", {
-    Title = "🟢 Auto Test Toggle",
-    Default = false,
-    Callback = function(state)
-        print("Toggle State:", state)
-    end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- ✅ เพิ่มเนื้อหา Dummy ทดสอบในแต่ละ Tab
+Tabs.Macro:AddParagraph({
+    Title = "Macro",
+    Content = "📝 หน้านี้สำหรับ Macro Recorder/Playback"
 })
 
-Tabs.Main:AddSlider("TestSlider", {
-    Title = "🎚️ Test Slider",
-    Description = "Slider for test",
-    Default = 50,
-    Min = 0,
-    Max = 100,
-    Rounding = 0,
-    Callback = function(value)
-        print("Slider Value:", value)
-    end
+Tabs.Game:AddParagraph({
+    Title = "Game",
+    Content = "🎮 หน้านี้สำหรับระบบ Replay, AutoVote"
 })
-
-Tabs.Main:AddInput("TestInput", {
-    Title = "⌨️ Test Input",
-    Placeholder = "Enter something...",
-    Numeric = false,
-    Callback = function(text)
-        print("Input Text:", text)
-    end
-})
-
-Tabs.Main:AddDropdown("TestDropdown", {
-    Title = "📋 Test Dropdown",
-    Values = { "One", "Two", "Three" },
-    Multi = false,
-    Default = "One",
-    Callback = function(val)
-        print("Dropdown:", val)
-    end
-})
-
-Tabs.Main:AddKeybind("TestKey", {
-    Title = "🧷 Test Keybind",
-    Mode = "Toggle",
-    Default = Enum.KeyCode.F,
-    Callback = function()
-        print("Keybind F Pressed")
-    end
-})
-
-
-
-
----  END TABS: SETTINGS -----------------------------------------------------------------------
 
 Tabs.Settings:AddParagraph({
     Title = "Settings",
     Content = "⚙️ การตั้งค่า Config, Theme ฯลฯ"
 })
----  END TABS: SETTINGS -----------------------------------------------------------------------
 
-
+print("✅ [UI] ใส่ Paragraph ในทุก Tab เรียบร้อย")
 
 -- ✅ ติดตั้ง Fluent Library ให้ SaveManager/InterfaceManager
 local successCfg = pcall(function()
@@ -100,21 +75,21 @@ local successCfg = pcall(function()
 
     InterfaceManager:BuildInterfaceSection(Tabs.Settings)
     SaveManager:BuildConfigSection(Tabs.Settings)
-
-    -- ✅ โหลด config หลังตั้งค่าทุกอย่างเสร็จ
-    SaveManager:LoadAutoloadConfig()
 end)
 
-
+if successCfg then
+    print("✅ [Settings] โหลด SaveManager/InterfaceManager เสร็จ")
+else
+    warn("⚠️ [Settings] โหลด Config UI ล้มเหลว")
+end
 
 -- ✅ เปิดแท็บ Macro ทันทีเพื่อแก้ปัญหาว่างเปล่า
 Window:SelectTab(1)
+print("✅ [Fix] เปิด Tab Macro โดยอัตโนมัติสำเร็จ")
 
 -- ✅ แจ้งเตือนตอนโหลดเสร็จ
 Fluent:Notify({
     Title = "ZSOFT HUB",
-    Content = "ZSOFT HUB - TEST Ready",
+    Content = "SpongeBob Macro UI โหลดสำเร็จแล้ว 🎉",
     Duration = 5
 })
-
-
