@@ -1,0 +1,8 @@
+task.delay(1, function()
+    if Toggles.PlayToggle and Toggles.PlayToggle.Value == true then
+        print("🔁 ปิด-เปิด Toggle ใหม่")
+        Toggles.PlayToggle:SetValue(false)
+        task.wait(1)
+        Toggles.PlayToggle:SetValue(true)
+    end
+end)
