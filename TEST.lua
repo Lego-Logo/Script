@@ -21,7 +21,7 @@ local Window = Fluent:CreateWindow({
 -- ✅ สร้าง Tabs แบบถูกต้อง
 local Tabs = {
     Macro = Window:AddTab({ Title = "Macro", Icon = "film" }),
-    Game = Window:AddTab({ Title = "Game", Icon = "game" }),
+    AutoJoin = Window:AddTab({ Title = "AutoJoin", Icon = "game" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
@@ -62,33 +62,33 @@ end
 
 
 
------------------------------------  Auto Join Challenge ------------------------------------
+----------------------------------- END Auto Join Challenge ------------------------------------
 
-Tabs.Game:AddParagraph({
+Tabs.AutoJoin:AddParagraph({
     Title = "Game",
     Content = "🎮 หน้านี้สำหรับระบบ Replay, AutoVote"
 })
 
 -- Auto Join Challenge
-Tabs.Game:AddSection("Challenge Mode")
+Tabs.AutoJoin:AddSection("Challenge Mode")
 
 -- ✅ เก็บความยากที่เลือก
-Tabs.Game.State.SelectedChallengeMode = "Nightmare"
+Tabs.AutoJoin.State.SelectedChallengeMode = "Nightmare"
 
 -- ✅ Dropdown เลือกความยาก
-Tabs.Game:AddDropdown("SelectChallengeMode", {
+Tabs.AutoJoin:AddDropdown("SelectChallengeMode", {
     Title = "ความยาก Challenge",
     Description = "เลือกโหมดความยาก",
     Values = { "Hard", "Nightmare" },
     Default = "Nightmare",
     Callback = function(value)
-        Tabs.Game.State.SelectedChallengeMode = value
+        Tabs.AutoJoin.State.SelectedChallengeMode = value
     end
 })
 
 
 -- ✅ Toggle เปิด/ปิด
-Tabs.Game:AddToggle("EnableChallengeGame", {
+Tabs.AutoJoin:AddToggle("EnableChallengeAutoJoin", {
     Title = "Auto Join (Challenge Mode)",
     Description = "จะวาร์ปไปสร้างห้องและเริ่มเกมโดยอัตโนมัติ",
     Default = false,
@@ -106,7 +106,7 @@ Tabs.Game:AddToggle("EnableChallengeGame", {
             end
 
             -- ✅ วาร์ปไปตำแหน่งตามความยาก
-            local difficulty = Tabs.Game.State.SelectedChallengeMode or "Hard"
+            local difficulty = Tabs.AutoJoin.State.SelectedChallengeMode or "Hard"
             local pos = Vector3.new()
 
             if difficulty == "Nightmare" then
@@ -130,11 +130,11 @@ Tabs.Game:AddToggle("EnableChallengeGame", {
 })
 
 -- Auto Join Challenge
-Tabs.Game:AddSection("Raid Mode")
+Tabs.AutoJoin:AddSection("Raid Mode")
 
 -- ✅ Raid Mode - เก็บค่าการเลือก
-Tabs.Game.State.SelectedRaidStage = "Mermalair"
-Tabs.Game.State.SelectedRaidMode = "Nightmare"
+Tabs.AutoJoin.State.SelectedRaidStage = "Mermalair"
+Tabs.AutoJoin.State.SelectedRaidMode = "Nightmare"
 
 -- ✅ รายชื่อด่าน
 local raidStages = {
@@ -143,28 +143,28 @@ local raidStages = {
 }
 
 -- ✅ Dropdown: เลือกด่าน Raid
-Tabs.Game:AddDropdown("SelectRaidStage", {
+Tabs.AutoJoin:AddDropdown("SelectRaidStage", {
     Title = "เลือกด่าน Raid",
     Description = "เลือกแผนที่ที่จะเล่น",
     Values = raidStages,
     Default = "Mermalair",
     Callback = function(val)
-        Tabs.Game.State.SelectedRaidStage = val
+        Tabs.AutoJoin.State.SelectedRaidStage = val
     end
 })
 
 -- ✅ Dropdown: เลือกความยาก
-Tabs.Game:AddDropdown("SelectRaidMode", {
+Tabs.AutoJoin:AddDropdown("SelectRaidMode", {
     Title = "ความยาก Raid",
     Description = "เลือกความยากของด่าน",
     Values = { "Hard", "Nightmare" },
     Default = "Nightmare",
     Callback = function(val)
-        Tabs.Game.State.SelectedRaidMode = val
+        Tabs.AutoJoin.State.SelectedRaidMode = val
     end
 })
 
-Tabs.Game:AddToggle("EnableRaidGame", {
+Tabs.AutoJoin:AddToggle("EnableRaidAutoJoin", {
     Title = "Auto Join (Raid Mode)",
     Description = "วาร์ปไปยังด่าน Raid ตามด่านและความยากที่เลือก",
     Default = false,
@@ -181,8 +181,8 @@ Tabs.Game:AddToggle("EnableRaidGame", {
                 return
             end
 
-            local stage = Tabs.Game.State.SelectedRaidStage
-            local difficulty = Tabs.Game.State.SelectedRaidMode or "Hard"
+            local stage = Tabs.AutoJoin.State.SelectedRaidStage
+            local difficulty = Tabs.AutoJoin.State.SelectedRaidMode or "Hard"
 
             -- ✅ กำหนดพิกัดตามด่านและความยาก
             local posMap = {
@@ -221,10 +221,31 @@ Tabs.Game:AddToggle("EnableRaidGame", {
 })
 ----------------------------------- END Auto Join Challenge ------------------------------------
 
+
+
+
+
+
+
+
+
+
+----------------------------------- SETTINGS ------------------------------------
+
 Tabs.Settings:AddParagraph({
     Title = "Settings",
     Content = "⚙️ การตั้งค่า Config, Theme ฯลฯ"
 })
+
+----------------------------------- END SETTINGS ------------------------------------
+
+
+
+
+
+
+
+
 
 -- ✅ ติดตั้ง Fluent Library ให้ SaveManager/InterfaceManager
 local successCfg = pcall(function()
