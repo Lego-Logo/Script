@@ -11,7 +11,7 @@ local Window = Fluent:CreateWindow({
     Title = "ZSOFT HUB",
     SubTitle = "SpongeBob Tower Defense",
     TabWidth = 160,
-    Size = UDim2.fromOffset(520, 400),
+    Size = UDim2.fromOffset(580, 430),
     Acrylic = false,
     Theme = "Aqua",
     MinimizeKey = Enum.KeyCode.LeftControl
@@ -62,12 +62,244 @@ end
 
 
 
------------------------------------ END Auto Join Challenge ------------------------------------
+-- TABS: Auto Join -----------------------------------------------------
 
-Tabs.AutoJoin:AddParagraph({
-    Title = "Game",
-    Content = "🎮 หน้านี้สำหรับระบบ Replay, AutoVote"
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+
+
+
+-- 🔒 STATE (แทน _G)
+Tabs.AutoJoin.State = {
+    AutoStartEnabled = false,
+    AutoStartDelay = 5,
+    AutoJoinEnabled = false,
+    SelectedStoryMap = "Conch Street",
+    SelectedStoryAct = 1,
+    SelectedStoryMode = "Normal",
+    IsJoiningRoom = false
+}
+
+-- 📌 รายชื่อแมพที่รองรับ
+local storyMaps = {
+    "Conch Street",
+    "Jellyfish Fields",
+    "Krusty Krab",
+    "Chum Bucket",
+    "Sandy's Treedome",
+    "Rock Bottom"
+}
+local difficultyModes = { "Normal", "Hard", "Nightmare" }
+
+-- ✅ ฟังก์ชันตรวจ Lobby
+local function isInLobby()
+    return Workspace:FindFirstChild("LobbyMenuZones") ~= nil
+end
+
+-- ✅ SECTION: AUTO START
+Tabs.AutoJoin:AddSection("Auto Start")
+
+Tabs.AutoJoin:AddToggle("AutoStartToggle", {
+    Title = "เปิดใช้งาน Auto Start",
+    Description = "เริ่มเกมโดยอัตโนมัติหลังสร้างห้อง",
+    Default = false,
+    Callback = function(state)
+        Tabs.AutoJoin.State.AutoStartEnabled = state
+
+        -- ✅ ถ้ายังรอ Start อยู่ และเพิ่งเปิด AutoStart → เริ่ม countdown แล้วค่อยยิง
+        if state and Tabs.AutoJoin.State._WaitingForStart and Tabs.AutoJoin.State._PendingReplicaId then
+            local delayTime = Tabs.AutoJoin.State.AutoStartDelay or 5
+            local replicaId = Tabs.AutoJoin.State._PendingReplicaId
+
+            task.spawn(function()
+                --print("⏱️ [AutoStart] เปิดทีหลัง → รอ " .. delayTime .. " วิ ก่อนยิง")
+                task.wait(delayTime)
+
+                if Tabs.AutoJoin.State.AutoStartEnabled and isInLobby() then
+                    ReplicatedStorage.ReplicaRemoteEvents.Replica_ReplicaSignal:FireServer(replicaId, "StartGame")
+                    --print("🚀 [AutoStart] ยิง StartGame สำเร็จหลัง delay")
+                else
+                    --print("❌ [AutoStart] ถูกปิดระหว่างรอ หรือล็อบบี้หาย")
+                end
+
+                Tabs.AutoJoin.State._WaitingForStart = false
+                Tabs.AutoJoin.State._PendingReplicaId = nil
+            end)
+        end
+    end
 })
+
+
+
+Tabs.AutoJoin:AddSlider("StartDelay", {
+    Title = "เวลาหน่วงก่อนเริ่มเกม",
+    Description = "ใช้ร่วมกันทั้ง Auto Join และ Auto Start",
+    Min = 1,
+    Max = 60,
+    Default = 5,
+    Rounding = 0,
+    Callback = function(value)
+        Tabs.AutoJoin.State.AutoStartDelay = value
+    end
+})
+
+-- ✅ SECTION: STORY MODE
+Tabs.AutoJoin:AddSection("Story Mode / Endless")
+
+Tabs.AutoJoin:AddDropdown("SelectPlayMode", {
+    Title = "เลือกโหมดการเล่น",
+    Description = "Story / Endless",
+    Values = { "Story", "Endless" },
+    Default = "Story",
+    Callback = function(value)
+        Tabs.AutoJoin.State.SelectedPlayMode = value
+        updateActDropdown() -- ✅ อัปเดต Act ตามโหมด
+    end
+})
+
+Tabs.AutoJoin:AddDropdown("SelectStoryMap", {
+    Title = "เลือกด่าน",
+    Description = "แมพที่จะเล่นใน Story / Endless Mode",
+    Values = storyMaps,
+    Default = storyMaps[1],
+    Callback = function(value)
+        Tabs.AutoJoin.State.SelectedStoryMap = value
+    end
+})
+
+Options = Options or {}
+Options.SelectStoryAct = Tabs.AutoJoin:AddDropdown("SelectStoryAct", {
+    Title = "เลือก Act หรือ Endless",
+    Description = "Act 1 ∞ A / B ∞ Act 2",
+    Values = {}, -- กำหนดทีหลัง
+    Default = "1",
+    Callback = function(value)
+        Tabs.AutoJoin.State.SelectedStoryAct = value
+    end
+})
+
+-- ✅ อัปเดตค่า Act ตามโหมด
+function updateActDropdown()
+    local mode = Tabs.AutoJoin.State.SelectedPlayMode or "Story"
+    local acts = {}
+
+    if mode == "Story" then
+        for i = 1, 10 do table.insert(acts, tostring(i)) end
+    elseif mode == "Endless" then
+        acts = { "Act1", "Act2" }
+    end
+
+    Options.SelectStoryAct:SetValues(acts)
+    Options.SelectStoryAct:SetValue(acts[1])
+    Tabs.AutoJoin.State.SelectedStoryAct = acts[1]
+end
+
+
+-- เรียกครั้งแรก
+updateActDropdown()
+
+Tabs.AutoJoin:AddDropdown("SelectStoryMode", {
+    Title = "เลือกโหมดความยาก",
+    Description = "Normal / Hard / Nightmare",
+    Values = difficultyModes,
+    Default = "Normal",
+    Callback = function(value)
+        Tabs.AutoJoin.State.SelectedStoryMode = value
+    end
+})
+
+-- ✅ SECTION: AUTO JOIN + AutoStart รองรับกดภายหลัง
+Tabs.AutoJoin:AddToggle("EnableAutoJoin", {
+    Title = "เปิดใช้งาน Auto Join",
+    Description = "จะวาร์ปไปสร้างห้องและเริ่มเกมโดยอัตโนมัติ",
+    Default = false,
+    Callback = function(state)
+        Tabs.AutoJoin.State.AutoJoinEnabled = state
+
+        if state and not Tabs.AutoJoin.State.IsJoiningRoom then
+            task.spawn(function()
+                if not isInLobby() then
+                    warn("❌ ไม่อยู่ใน Lobby → ยกเลิกการสร้างห้อง")
+                    return
+                end
+
+                Tabs.AutoJoin.State.IsJoiningRoom = true
+
+                local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+                local hrp = char:WaitForChild("HumanoidRootPart")
+                hrp.CFrame = CFrame.new(Vector3.new(117, 10, -529))
+
+                RunService.Heartbeat:Wait()
+
+                local selectedMap = (Tabs.AutoJoin.State.SelectedStoryMap or ""):gsub("%s+", "")
+                local act = Tabs.AutoJoin.State.SelectedStoryAct or "1"
+                local selectedMode = Tabs.AutoJoin.State.SelectedStoryMode or "Normal"
+                local mode = Tabs.AutoJoin.State.SelectedPlayMode or "Story"
+                local difficultyMap = { Normal = 1, Hard = 2, Nightmare = 3 }
+                local selectedDifficulty = difficultyMap[selectedMode] or 1
+                local delayTime = Tabs.AutoJoin.State.AutoStartDelay or 5
+
+                local chapter = 1
+                if mode == "Story" then
+                    chapter = tonumber(act) or 1
+                elseif mode == "Endless" then
+                    local actClean = tostring(act):gsub("%s+", "")
+                    chapter = (actClean == "Act2") and 2 or 1
+                end
+
+                -- ✅ เก็บสถานะไว้ เพื่อ AutoStart ทีหลังได้
+                local function handleStartGame(replicaId)
+                    Tabs.AutoJoin.State._PendingReplicaId = replicaId
+                    Tabs.AutoJoin.State._WaitingForStart = true
+
+                    task.spawn(function()
+                        --print("⏱️ รอ " .. delayTime .. " วินาที่จะ StartGame...")
+                        task.wait(delayTime)
+
+                        if Tabs.AutoJoin.State.AutoStartEnabled and isInLobby() then
+                            ReplicatedStorage.ReplicaRemoteEvents.Replica_ReplicaSignal:FireServer(replicaId, "StartGame")
+                            --print("🚀 StartGame สำเร็จ")
+                        end
+
+                        Tabs.AutoJoin.State._WaitingForStart = false
+                        Tabs.AutoJoin.State._PendingReplicaId = nil
+                    end)
+                end
+
+                local connection
+                connection = ReplicatedStorage.ReplicaRemoteEvents.Replica_ReplicaCreate.OnClientEvent:Connect(function(replicaId, data)
+                    connection:Disconnect()
+
+                    ReplicatedStorage.ReplicaRemoteEvents.Replica_ReplicaSignal:FireServer(replicaId, "ConfirmMap", {
+                        Difficulty = selectedDifficulty,
+                        Chapter = chapter,
+                        Endless = (mode == "Endless"),
+                        World = selectedMap
+                    })
+
+                    handleStartGame(replicaId)
+                    Tabs.AutoJoin.State.IsJoiningRoom = false
+                end)
+
+                if isInLobby() then
+                    ReplicatedStorage.ReplicaRemoteEvents.Replica_ReplicaSignal:FireServer(nil, "ConfirmMap", {
+                        Difficulty = selectedDifficulty,
+                        Chapter = chapter,
+                        Endless = (mode == "Endless"),
+                        World = selectedMap
+                    })
+                else
+                    Tabs.AutoJoin.State.IsJoiningRoom = false
+                end
+            end)
+        end
+    end
+})
+
 
 -- Auto Join Challenge
 Tabs.AutoJoin:AddSection("Challenge Mode")
@@ -219,7 +451,13 @@ Tabs.AutoJoin:AddToggle("EnableRaidAutoJoin", {
         end)
     end
 })
------------------------------------ END Auto Join Challenge ------------------------------------
+
+
+
+
+-- END TABS: Auto Join -----------------------------------------------------
+
+
 
 
 
