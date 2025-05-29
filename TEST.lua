@@ -73,8 +73,8 @@ Tabs.Main:AddKeybind("TestKey", {
 -- ✅ Settings UI
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
-SaveManager:SetFolder("ZSOFT HUB/TESTUI")
-InterfaceManager:SetFolder("ZSOFT HUB/TESTUI")
+SaveManager:SetFolder("ZSOFT HUB - TEST SAVE-LOAD")
+InterfaceManager:SetFolder("ZSOFT HUB - TEST SAVE-LOAD")
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
 
