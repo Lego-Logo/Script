@@ -1,4 +1,4 @@
--- ตัวแปร ทั้งหมดที่จำเป็นของ UI ------------------------------------------------------
+-- ตัวแปร ทั้งหมดที่จำเป็นของ UI -----------------------------------------------------
 
 -- ✅ โหลด Fluent UI และ Addons
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
@@ -29,11 +29,54 @@ local Tabs = {
 
 
 
--- ✅ เพิ่มเนื้อหา Dummy ทดสอบในแต่ละ Tab
+--  MACRO UI -----------------------------------------------------
 Tabs.Macro:AddParagraph({
     Title = "Macro",
     Content = "📝 หน้านี้สำหรับ Macro Recorder/Playback"
 })
+
+Tabs.Macro:AddToggle("TestToggle1", {
+    Title = "🟢 Auto Test Toggle1",
+    Default = false,
+    Callback = function(state)
+        print("Toggle State:", state)
+    end
+})
+
+Tabs.Macro:AddToggle("TestToggle2", {
+    Title = "🟢 Auto Test Toggle2",
+    Default = false,
+    Callback = function(state)
+        print("Toggle State:", state)
+    end
+})
+
+Tabs.Macro:AddToggle("TestToggle3", {
+    Title = "🟢 Auto Test Toggle3",
+    Default = false,
+    Callback = function(state)
+        print("Toggle State:", state)
+    end
+})
+
+Tabs.Macro:AddToggle("TestToggle4", {
+    Title = "🟢 Auto Test Toggle4,
+    Default = false,
+    Callback = function(state)
+        print("Toggle State:", state)
+    end
+})
+
+Tabs.Macro:AddToggle("TestToggle5", {
+    Title = "🟢 Auto Test Toggle5",
+    Default = false,
+    Callback = function(state)
+        print("Toggle State:", state)
+    end
+})
+
+--  END MACRO UI -----------------------------------------------------
+
 
 Tabs.Game:AddParagraph({
     Title = "Game",
