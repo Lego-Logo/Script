@@ -22,6 +22,7 @@ local Window = Fluent:CreateWindow({
 local Tabs = {
     Macro = Window:AddTab({ Title = "Macro", Icon = "film" }),
     AutoJoin = Window:AddTab({ Title = "AutoJoin", Icon = "game" }),
+    Game = Window:AddTab({ Title = "Game", Icon = "game" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
@@ -460,7 +461,116 @@ Tabs.AutoJoin:AddToggle("EnableRaidAutoJoin", {
 
 
 
+Tabs.Game:AddSection("Auto Teleport")
+-------------------------------- GAME Check wave ----
+-- ✅ ตัวแปรเก็บ Wave เป้าหมาย
+local targetWave = 1
+local waveCheckRunning = false
 
+-- ✅ Input กรอกเลข Wave
+Tabs.Game:AddInput("TargetWaveInput", {
+    Title = "🚪 Teleport Wave",
+    Description = "กำหนด Wave เพื่อ Teleport",
+    Default = "1",
+    Placeholder = "กรอกตัวเลขเช่น 5",
+    Callback = function(val)
+        local num = tonumber(val)
+        if num and num > 0 then
+            targetWave = num
+            -- print("🎯 ตั้งค่า Wave เป้าหมายเป็น:", targetWave)
+        else
+            Fluent:Notify({
+                Title = "❌ ไม่ใช่ตัวเลข",
+                Content = "กรุณากรอกตัวเลข Wave ที่ถูกต้อง",
+                Duration = 3
+            })
+        end
+    end
+})
+
+
+
+-- ✅ Toggle ตรวจสอบ Wave
+Tabs.Game:AddToggle("WaveCheckerToggle", {
+    Title = "🚪 Auto Teleport To Lobby",
+    Description = "กำหนด Wave ที่จะวาร์ปกลับ Lobby Auto",
+    Default = false
+}):OnChanged(function(state)
+    waveCheckRunning = state
+
+    if state then
+        -- ✅ หน่วงเวลาเล็กน้อย เพื่อรอ config โหลดจาก SaveManager
+        task.wait(1.2)
+
+        Fluent:Notify({
+            Title = "📡 เริ่มตรวจ Wave",
+            Content = "รอจนถึง Wave " .. targetWave,
+            Duration = 4
+        })
+
+        -- เหมือนเดิม...
+        task.spawn(function()
+            local gui = Players.LocalPlayer:WaitForChild("PlayerGui")
+            local waveLabel = gui:WaitForChild("GameUI").Top.Main.StageInfo.Inner.Inner:WaitForChild("CurrentWave")
+
+            local function getWaveNumber()
+                local raw = waveLabel.Text or ""
+                return tonumber(string.match(raw, "%d+")) or 0
+            end
+
+            -- ✅ รอจน Wave เริ่ม > 0
+            while getWaveNumber() <= 0 and waveCheckRunning do
+                task.wait(0.5)
+            end
+
+            while waveCheckRunning do
+                local wave = getWaveNumber()
+
+                if wave >= targetWave then
+                    Fluent:Notify({
+                        Title = "📦 ถึง Wave เป้าหมาย",
+                        Content = "Wave ปัจจุบัน: " .. wave .. "\n→ กำลังวาร์ปกลับ Lobby...",
+                        Duration = 5
+                    })
+
+                    waveCheckRunning = false
+
+                    local success, result = pcall(function()
+                        return game:GetService("ReplicatedStorage")
+                            :WaitForChild("Packages")
+                            :WaitForChild("_Index")
+                            :WaitForChild("acecateer_knit@1.7.1")
+                            :WaitForChild("knit")
+                            :WaitForChild("Services")
+                            :WaitForChild("GameService")
+                            :WaitForChild("RF")
+                            :WaitForChild("ReturningToLobby")
+                            :InvokeServer()
+                    end)
+
+                    if success then
+                        --print("✅ วาร์ปกลับ Lobby สำเร็จ")
+                    else
+                        warn("❌ วาร์ปล้มเหลว:", result)
+                    end
+
+                    break
+                end
+
+                task.wait(0.6)
+            end
+        end)
+
+    else
+        Fluent:Notify({
+            Title = "⛔ ปิดระบบตรวจ Wave",
+            Content = "หยุดการตรวจสอบแล้ว",
+            Duration = 3
+        })
+    end
+end)
+
+-------------------------------- End GAME Check wave ----
 
 
 
