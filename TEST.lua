@@ -35,47 +35,31 @@ Tabs.Macro:AddParagraph({
     Content = "📝 หน้านี้สำหรับ Macro Recorder/Playback"
 })
 
-Tabs.Macro:AddToggle("TestToggle1", {
-    Title = "🟢 Auto Test Toggle1",
-    Default = false,
-    Callback = function(state)
-        print("Toggle State:", state)
-    end
-})
+-- ✅ Toggle 1–5
+for i = 1, 5 do
+    Tabs.Macro:AddToggle("TestToggle" .. i, {
+        Title = "🟢 Auto Test Toggle " .. i,
+        Default = false,
+        Callback = function(state)
+            print("Toggle " .. i .. ":", state)
+        end
+    })
+end
 
-Tabs.Macro:AddToggle("TestToggle2", {
-    Title = "🟢 Auto Test Toggle2",
-    Default = false,
-    Callback = function(state)
-        print("Toggle State:", state)
-    end
-})
-
-Tabs.Macro:AddToggle("TestToggle3", {
-    Title = "🟢 Auto Test Toggle3",
-    Default = false,
-    Callback = function(state)
-        print("Toggle State:", state)
-    end
-})
-
-Tabs.Macro:AddToggle("TestToggle4", {
-    Title = "🟢 Auto Test Toggle4,
-    Default = false,
-    Callback = function(state)
-        print("Toggle State:", state)
-    end
-})
-
-Tabs.Macro:AddToggle("TestToggle5", {
-    Title = "🟢 Auto Test Toggle5",
-    Default = false,
-    Callback = function(state)
-        print("Toggle State:", state)
-    end
-})
+-- ✅ Input 1–3 ผสมทดสอบ
+for i = 1, 3 do
+    Tabs.Macro:AddInput("TestInput" .. i, {
+        Title = "⌨️ Test Input " .. i,
+        Placeholder = "พิมพ์ข้อความ...",
+        Default = "",
+        Callback = function(text)
+            print("Input " .. i .. ":", text)
+        end
+    })
+end
 
 --  END MACRO UI -----------------------------------------------------
+
 
 
 Tabs.Game:AddParagraph({
