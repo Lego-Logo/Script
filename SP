@@ -3386,86 +3386,6 @@ local successCfg = pcall(function()
     -- ✅ โหลด config หลังตั้งค่าทุกอย่างเสร็จ
     SaveManager:LoadAutoloadConfig()
 
-    ------------- ฟังก์ชันเช็ค Toggle : on ทั้งหมดให้ทำงาน -------------
-    local hasTriggeredPlayToggle = false
-
-    local function triggerToggleCallbacks()
-        task.delay(1, function()
-            if not Toggles then return end
-
-            for id, toggle in pairs(Toggles) do
-                if typeof(toggle) == "table" and toggle.Value == true then
-                    if id == "PlayToggle" and hasTriggeredPlayToggle then
-                        print("⚠️ ข้ามการเรียก PlayToggle ซ้ำ")
-                    else
-                        toggle:SetValue(true)
-                        if id == "PlayToggle" then
-                            hasTriggeredPlayToggle = true
-                        end
-                    end
-                end
-            end
-        end)
-    end    
-    triggerToggleCallbacks()
-
-    ------------- END ฟังก์ชันเช็ค Toggle : on ทั้งหมดให้ทำงาน -------------
-
-        -- ✅ Watcher ตรวจ Wave 1
-        task.spawn(function()
-            local gui = Players.LocalPlayer:WaitForChild("PlayerGui")
-            local waveLabel = gui:WaitForChild("GameUI").Top.Main.StageInfo.Inner.Inner:WaitForChild("CurrentWave")
-
-            local function getWaveNumber()
-                local raw = waveLabel.Text or ""
-                return tonumber(string.match(raw, "%d+")) or 0
-            end
-
-            local lastWave = 0
-
-            while true do
-                task.wait(0.5)
-
-                local currentWave = getWaveNumber()
-                if currentWave == 1 and lastWave ~= 1 and isPlaying then
-                    print("📘 [Watcher] ตรวจพบ Wave 1 → รีเซ็ตระบบ")
-
-                    -- ✅ หยุด loop macro เดิมแบบเด็ดขาด
-                    currentPlaybackToken += 1
-                    isPlaying = false
-                    _G.MacroIsPlaying = false
-
-                    -- ✅ รีเซ็ตตัวแปรสำคัญ
-                    task.delay(0.2, function()
-                        currentIndex = 1
-                        upgradeCountByUUID = {}
-                        baseUpgradeMemory = {}
-                        placedUUIDMap = {}
-                        statusDisplay:SetValue("")
-                        upgradeStatusDisplay:SetValue("")
-                        hideNextIndicator3D()
-                    end)
-
-                    -- ✅ สั่ง Toggle ปิด-เปิดใหม่อย่างปลอดภัย
-                    task.wait(0.8)
-                    if Toggles and Toggles.PlayToggle and Toggles.PlayToggle.Value == true then
-                        Toggles.PlayToggle:SetValue(false)
-                        task.wait(1.2)
-
-                        -- ✅ รองรับ Delta X: ใช้ Callback แทน
-                        if Toggles.PlayToggle.Callback then
-                            print("🔁 Trigger Callback → PlayToggle")
-                            Toggles.PlayToggle.Callback(true)
-                        else
-                            Toggles.PlayToggle:SetValue(true)
-                        end
-                    end
-                end
-
-                lastWave = currentWave
-            end
-        end)
-
 end)
 
 
@@ -3554,4 +3474,30 @@ task.spawn(function()
 end)
 ---- END AUTO SAVE / AUTO LOAD CONFIG --------------------------------
 
+
+
+    ------------- ฟังก์ชันเช็ค Toggle : on ทั้งหมดให้ทำงาน -------------
+    local hasTriggeredPlayToggle = false
+
+    local function triggerToggleCallbacks()
+        task.delay(1, function()
+            if not Toggles then return end
+
+            for id, toggle in pairs(Toggles) do
+                if typeof(toggle) == "table" and toggle.Value == true then
+                    if id == "PlayToggle" and hasTriggeredPlayToggle then
+                        print("⚠️ ข้ามการเรียก PlayToggle ซ้ำ")
+                    else
+                        toggle:SetValue(true)
+                        if id == "PlayToggle" then
+                            hasTriggeredPlayToggle = true
+                        end
+                    end
+                end
+            end
+        end)
+    end
+    triggerToggleCallbacks()
+
+    ------------- END ฟังก์ชันเช็ค Toggle : on ทั้งหมดให้ทำงาน -------------
 
