@@ -62,10 +62,164 @@ end
 
 
 
+-----------------------------------  Auto Join Challenge ------------------------------------
+
 Tabs.Game:AddParagraph({
     Title = "Game",
     Content = "🎮 หน้านี้สำหรับระบบ Replay, AutoVote"
 })
+
+-- Auto Join Challenge
+Tabs.Game:AddSection("Challenge Mode")
+
+-- ✅ เก็บความยากที่เลือก
+Tabs.Game.State.SelectedChallengeMode = "Nightmare"
+
+-- ✅ Dropdown เลือกความยาก
+Tabs.Game:AddDropdown("SelectChallengeMode", {
+    Title = "ความยาก Challenge",
+    Description = "เลือกโหมดความยาก",
+    Values = { "Hard", "Nightmare" },
+    Default = "Nightmare",
+    Callback = function(value)
+        Tabs.Game.State.SelectedChallengeMode = value
+    end
+})
+
+
+-- ✅ Toggle เปิด/ปิด
+Tabs.Game:AddToggle("EnableChallengeGame", {
+    Title = "Auto Join (Challenge Mode)",
+    Description = "จะวาร์ปไปสร้างห้องและเริ่มเกมโดยอัตโนมัติ",
+    Default = false,
+    Callback = function(state)
+        if not state then return end
+
+        task.spawn(function()
+            if not isInLobby() then
+                Fluent:Notify({
+                    Title = "❌ ไม่อยู่ใน Lobby",
+                    Content = "ไม่สามารถเริ่ม Challenge ได้",
+                    Duration = 3
+                })
+                return
+            end
+
+            -- ✅ วาร์ปไปตำแหน่งตามความยาก
+            local difficulty = Tabs.Game.State.SelectedChallengeMode or "Hard"
+            local pos = Vector3.new()
+
+            if difficulty == "Nightmare" then
+                pos = Vector3.new(355.2195129394531, 13.200729370117188, -421.3446960449219)
+            else
+                pos = Vector3.new(332.8740234375, 12.735966682434082, -361.625)
+            end
+
+
+            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local hrp = char:WaitForChild("HumanoidRootPart")
+            hrp.CFrame = CFrame.new(pos)
+
+            Fluent:Notify({
+                Title = "🚀 Challenge Mode",
+                Content = "วาร์ปไปยังโหมด " .. difficulty,
+                Duration = 3
+            })
+        end)
+    end
+})
+
+-- Auto Join Challenge
+Tabs.Game:AddSection("Raid Mode")
+
+-- ✅ Raid Mode - เก็บค่าการเลือก
+Tabs.Game.State.SelectedRaidStage = "Mermalair"
+Tabs.Game.State.SelectedRaidMode = "Nightmare"
+
+-- ✅ รายชื่อด่าน
+local raidStages = {
+    "Mermalair",
+    "Middle Ages"
+}
+
+-- ✅ Dropdown: เลือกด่าน Raid
+Tabs.Game:AddDropdown("SelectRaidStage", {
+    Title = "เลือกด่าน Raid",
+    Description = "เลือกแผนที่ที่จะเล่น",
+    Values = raidStages,
+    Default = "Mermalair",
+    Callback = function(val)
+        Tabs.Game.State.SelectedRaidStage = val
+    end
+})
+
+-- ✅ Dropdown: เลือกความยาก
+Tabs.Game:AddDropdown("SelectRaidMode", {
+    Title = "ความยาก Raid",
+    Description = "เลือกความยากของด่าน",
+    Values = { "Hard", "Nightmare" },
+    Default = "Nightmare",
+    Callback = function(val)
+        Tabs.Game.State.SelectedRaidMode = val
+    end
+})
+
+Tabs.Game:AddToggle("EnableRaidGame", {
+    Title = "Auto Join (Raid Mode)",
+    Description = "วาร์ปไปยังด่าน Raid ตามด่านและความยากที่เลือก",
+    Default = false,
+    Callback = function(state)
+        if not state then return end
+
+        task.spawn(function()
+            if not isInLobby() then
+                Fluent:Notify({
+                    Title = "❌ ไม่อยู่ใน Lobby",
+                    Content = "ไม่สามารถเข้า Raid Mode ได้",
+                    Duration = 3
+                })
+                return
+            end
+
+            local stage = Tabs.Game.State.SelectedRaidStage
+            local difficulty = Tabs.Game.State.SelectedRaidMode or "Hard"
+
+            -- ✅ กำหนดพิกัดตามด่านและความยาก
+            local posMap = {
+                ["Mermalair"] = {
+                    Hard = Vector3.new(42.56332778930664, 5, -365.46478271484375),
+                    Nightmare = Vector3.new(-10.510272026062012, 5, -368.5558166503906)
+                },
+                ["Middle Ages"] = {
+                    Hard = Vector3.new(41.95417404174805, 5, -455.2958984375),
+                    Nightmare = Vector3.new(-11.096419334411621, 5, -452.27069091796875)
+                }
+            }
+
+
+            local pos = posMap[stage] and posMap[stage][difficulty]
+
+            if pos then
+                local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+                local hrp = char:WaitForChild("HumanoidRootPart")
+                hrp.CFrame = CFrame.new(pos)
+
+                Fluent:Notify({
+                    Title = "🚀 Raid Mode",
+                    Content = string.format("วาร์ปไปยัง %s (%s)", stage, difficulty),
+                    Duration = 3
+                })
+            else
+                Fluent:Notify({
+                    Title = "❌ ไม่พบพิกัด",
+                    Content = "อาจยังไม่ได้กำหนดพิกัดสำหรับ Stage นี้",
+                    Duration = 4
+                })
+            end
+        end)
+    end
+})
+----------------------------------- END Auto Join Challenge ------------------------------------
 
 Tabs.Settings:AddParagraph({
     Title = "Settings",
@@ -165,12 +319,11 @@ for flagName, flagData in pairs(Fluent.Flags or {}) do
     end
 end
 
--- ✅ สำรองข้อมูลทุก 30 วิ
+-- ✅ สำรองข้อมูลทุก 5 วิ
 task.spawn(function()
     while true do
-        task.wait(30)
+        task.wait(5)
         SaveManager:Save(playerName)
-        --print("🕒 AutoSaved every 30s for", playerName)
     end
 end)
 ---- END AUTO SAVE / AUTO LOAD CONFIG --------------------------------
