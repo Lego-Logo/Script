@@ -1,4 +1,4 @@
--- ตัวแปร ทั้งหมดที่จำเป็นของ UI -----------------------------------------------------
+-- ตัวแปร ทั้งหมดที่จำเป็นของ UI ------------------------------------------------------
 
 -- ✅ โหลด Fluent UI และ Addons
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
