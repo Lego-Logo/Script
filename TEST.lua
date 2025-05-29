@@ -72,6 +72,11 @@ Tabs.Main:AddKeybind("TestKey", {
     end
 })
 
+Tabs.Settings:AddParagraph({
+    Title = "Settings",
+    Content = "⚙️ การตั้งค่า Config, Theme ฯลฯ"
+})
+
 -- ✅ ติดตั้ง Fluent Library ให้ SaveManager/InterfaceManager
 local successCfg = pcall(function()
     SaveManager:SetLibrary(Fluent)
