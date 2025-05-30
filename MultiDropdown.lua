@@ -1,120 +1,86 @@
--- MultiSelectDropdown.lua
-
-return function(parentGui, config)
+return function(parent, config)
 	local UIS = game:GetService("UserInputService")
-
-	local dropdownFrame = Instance.new("Frame")
-	dropdownFrame.Name = config.Id or "MultiDropdown"
-	dropdownFrame.Size = UDim2.new(1, 0, 0, 40)
-	dropdownFrame.BackgroundTransparency = 1
-	dropdownFrame.Parent = parentGui
-
-	local mainButton = Instance.new("TextButton")
-	mainButton.Size = UDim2.new(1, 0, 1, 0)
-	mainButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-	mainButton.BorderSizePixel = 0
-	mainButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-	mainButton.Font = Enum.Font.GothamBold
-	mainButton.TextSize = 14
-	mainButton.TextXAlignment = Enum.TextXAlignment.Left
-	mainButton.Text = config.Title or "Select Items"
-	mainButton.Parent = dropdownFrame
+	local Players = game:GetService("Players")
 
 	local selectedValues = {}
 	local dropdownOpen = false
 
-	local dropdownList = Instance.new("ScrollingFrame")
-	dropdownList.Size = UDim2.new(1, 0, 0, 120)
-	dropdownList.Position = UDim2.new(0, 0, 1, 2)
-	dropdownList.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-	dropdownList.BorderSizePixel = 0
-	dropdownList.ScrollBarThickness = 4
-	dropdownList.Visible = false
-	dropdownList.CanvasSize = UDim2.new(0, 0, 0, 0)
-	dropdownList.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	dropdownList.Parent = dropdownFrame
+	-- ✅ Main button
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0, 260, 0, 36)
+	button.Position = UDim2.new(0, 20, 0, 20)
+	button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	button.BorderSizePixel = 0
+	button.TextColor3 = Color3.fromRGB(255, 255, 255)
+	button.Text = config.Title or "เลือกหลายค่า"
+	button.Font = Enum.Font.GothamBold
+	button.TextSize = 14
+	button.TextXAlignment = Enum.TextXAlignment.Left
+	button.Parent = parent
 
-	local UIList = Instance.new("UIListLayout")
-	UIList.Parent = dropdownList
-	UIList.SortOrder = Enum.SortOrder.LayoutOrder
+	-- ✅ Dropdown list
+	local listFrame = Instance.new("Frame")
+	listFrame.Position = UDim2.new(0, 20, 0, 58)
+	listFrame.Size = UDim2.new(0, 260, 0, #config.Values * 28 + 6)
+	listFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+	listFrame.BorderSizePixel = 0
+	listFrame.Visible = false
+	listFrame.ClipsDescendants = true
+	listFrame.Parent = parent
 
-	local function updateMainButtonText()
-		local keys = {}
-		for _, val in ipairs(config.Values) do
-			if selectedValues[val] then
-				table.insert(keys, val)
-			end
-		end
-		mainButton.Text = (config.Title or "Select") .. ": " .. (#keys > 0 and table.concat(keys, ", ") or "None")
-	end
+	local layout = Instance.new("UIListLayout", listFrame)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, 4)
 
+	-- ✅ Create options
 	for _, val in ipairs(config.Values or {}) do
-		local option = Instance.new("TextButton")
-		option.Size = UDim2.new(1, -4, 0, 30)
-		option.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-		option.BorderSizePixel = 0
-		option.TextColor3 = Color3.fromRGB(255, 255, 255)
-		option.Font = Enum.Font.Gotham
-		option.TextSize = 13
-		option.Text = "☐ " .. val
-		option.LayoutOrder = 0
-		option.Parent = dropdownList
+		local isDefault = table.find(config.Default or {}, val) ~= nil
+		selectedValues[val] = isDefault
 
-		selectedValues[val] = table.find(config.Default or {}, val) ~= nil
-		if selectedValues[val] then
-			option.Text = "☑ " .. val
-		end
+		local option = Instance.new("TextButton")
+		option.Size = UDim2.new(1, -8, 0, 24)
+		option.Position = UDim2.new(0, 4, 0, 0)
+		option.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+		option.TextColor3 = Color3.new(1,1,1)
+		option.BorderSizePixel = 0
+		option.TextSize = 12
+		option.Font = Enum.Font.Gotham
+		option.TextXAlignment = Enum.TextXAlignment.Left
+		option.Text = (isDefault and "☑ " or "☐ ") .. val
+		option.Parent = listFrame
 
 		option.MouseButton1Click:Connect(function()
 			selectedValues[val] = not selectedValues[val]
 			option.Text = (selectedValues[val] and "☑ " or "☐ ") .. val
-			updateMainButtonText()
 
-			-- ✅ Trigger Callback
-			if config.Callback then
-				local result = {}
-				for k, v in pairs(selectedValues) do
-					if v then table.insert(result, k) end
-				end
-				config.Callback(result)
-			end
+			-- ✅ Update text
+			local selected = {}
+			for k,v in pairs(selectedValues) do if v then table.insert(selected, k) end end
+			button.Text = config.Title .. ": " .. (#selected > 0 and table.concat(selected, ", ") or "None")
+
+			if config.Callback then config.Callback(selected) end
 		end)
 	end
 
-	mainButton.MouseButton1Click:Connect(function()
+	-- ✅ Toggle Dropdown
+	button.MouseButton1Click:Connect(function()
 		dropdownOpen = not dropdownOpen
-		dropdownList.Visible = dropdownOpen
+		listFrame.Visible = dropdownOpen
 	end)
 
-	UIS.InputBegan:Connect(function(input)
-		if dropdownOpen and input.UserInputType == Enum.UserInputType.MouseButton1 then
-			local mouse = game:GetService("Players").LocalPlayer:GetMouse()
-			if not dropdownFrame:IsAncestorOf(mouse.Target) then
-				dropdownList.Visible = false
-				dropdownOpen = false
-			end
-		end
-	end)
-
-	-- ✅ Public API
 	return {
 		GetValue = function()
-			local result = {}
-			for k, v in pairs(selectedValues) do
-				if v then table.insert(result, k) end
-			end
-			return result
+			local selected = {}
+			for k,v in pairs(selectedValues) do if v then table.insert(selected, k) end end
+			return selected
 		end,
 		SetValue = function(values)
-			for _, child in ipairs(dropdownList:GetChildren()) do
-				if child:IsA("TextButton") then
-					local key = string.match(child.Text, "☑ (.+)") or string.match(child.Text, "☐ (.+)")
-					local enabled = table.find(values, key) ~= nil
-					selectedValues[key] = enabled
-					child.Text = (enabled and "☑ " or "☐ ") .. key
-				end
-			end
-			updateMainButtonText()
+			for k,_ in pairs(selectedValues) do selectedValues[k] = false end
+			for _, v in ipairs(values) do selectedValues[v] = true end
+			-- update label
+			local selected = {}
+			for k,v in pairs(selectedValues) do if v then table.insert(selected, k) end end
+			button.Text = config.Title .. ": " .. (#selected > 0 and table.concat(selected, ", ") or "None")
 		end
 	}
 end
