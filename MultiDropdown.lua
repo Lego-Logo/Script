@@ -1,85 +1,123 @@
 return function(parent, config)
 	local UIS = game:GetService("UserInputService")
-	local Players = game:GetService("Players")
-
 	local selectedValues = {}
 	local dropdownOpen = false
 
-	-- ✅ Main button
+	-- ✅ Main container
+	local holder = Instance.new("Frame")
+	holder.Name = config.Id or "MultiDropdownHolder"
+	holder.Size = UDim2.new(1, 0, 0, 36)
+	holder.BackgroundTransparency = 1
+	holder.Parent = parent
+
+	-- ✅ Main Button
 	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(0, 260, 0, 36)
-	button.Position = UDim2.new(0, 20, 0, 20)
-	button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	button.AnchorPoint = Vector2.new(0, 0)
+	button.Position = UDim2.new(0, 0, 0, 0)
+	button.Size = UDim2.new(1, 0, 0, 36)
+	button.BackgroundColor3 = Color3.fromRGB(31, 31, 31)
 	button.BorderSizePixel = 0
-	button.TextColor3 = Color3.fromRGB(255, 255, 255)
-	button.Text = config.Title or "เลือกหลายค่า"
-	button.Font = Enum.Font.GothamBold
+	button.AutoButtonColor = false
+	button.TextColor3 = Color3.fromRGB(240, 240, 240)
+	button.Font = Enum.Font.GothamSemibold
 	button.TextSize = 14
 	button.TextXAlignment = Enum.TextXAlignment.Left
-	button.Parent = parent
+	button.Text = config.Title or "เลือกหลายค่า"
+	button.ClipsDescendants = true
+	button.Parent = holder
 
-	-- ✅ Dropdown list
+	local uicorner = Instance.new("UICorner", button)
+	uicorner.CornerRadius = UDim.new(0, 6)
+
+	-- ✅ Dropdown List
 	local listFrame = Instance.new("Frame")
-	listFrame.Position = UDim2.new(0, 20, 0, 58)
-	listFrame.Size = UDim2.new(0, 260, 0, #config.Values * 28 + 6)
-	listFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+	listFrame.Position = UDim2.new(0, 0, 1, 4)
+	listFrame.Size = UDim2.new(1, 0, 0, #config.Values * 32)
+	listFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
 	listFrame.BorderSizePixel = 0
 	listFrame.Visible = false
 	listFrame.ClipsDescendants = true
-	listFrame.Parent = parent
+	listFrame.Parent = holder
+
+	local corner = Instance.new("UICorner", listFrame)
+	corner.CornerRadius = UDim.new(0, 6)
 
 	local layout = Instance.new("UIListLayout", listFrame)
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Padding = UDim.new(0, 4)
 
-	-- ✅ Create options
+	-- ✅ Options
 	for _, val in ipairs(config.Values or {}) do
 		local isDefault = table.find(config.Default or {}, val) ~= nil
 		selectedValues[val] = isDefault
 
-		local option = Instance.new("TextButton")
-		option.Size = UDim2.new(1, -8, 0, 24)
-		option.Position = UDim2.new(0, 4, 0, 0)
-		option.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-		option.TextColor3 = Color3.new(1,1,1)
-		option.BorderSizePixel = 0
-		option.TextSize = 12
-		option.Font = Enum.Font.Gotham
-		option.TextXAlignment = Enum.TextXAlignment.Left
-		option.Text = (isDefault and "☑ " or "☐ ") .. val
-		option.Parent = listFrame
+		local opt = Instance.new("TextButton")
+		opt.Size = UDim2.new(1, -12, 0, 28)
+		opt.Position = UDim2.new(0, 6, 0, 0)
+		opt.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+		opt.BorderSizePixel = 0
+		opt.TextColor3 = Color3.fromRGB(220, 220, 220)
+		opt.Font = Enum.Font.Gotham
+		opt.TextSize = 13
+		opt.TextXAlignment = Enum.TextXAlignment.Left
+		opt.Text = (isDefault and "☑ " or "☐ ") .. val
+		opt.Parent = listFrame
 
-		option.MouseButton1Click:Connect(function()
+		local optCorner = Instance.new("UICorner", opt)
+		optCorner.CornerRadius = UDim.new(0, 4)
+
+		opt.MouseButton1Click:Connect(function()
 			selectedValues[val] = not selectedValues[val]
-			option.Text = (selectedValues[val] and "☑ " or "☐ ") .. val
+			opt.Text = (selectedValues[val] and "☑ " or "☐ ") .. val
 
-			-- ✅ Update text
+			-- ✅ Update Main Text
 			local selected = {}
 			for k,v in pairs(selectedValues) do if v then table.insert(selected, k) end end
 			button.Text = config.Title .. ": " .. (#selected > 0 and table.concat(selected, ", ") or "None")
 
-			if config.Callback then config.Callback(selected) end
+			-- ✅ Trigger Callback
+			if config.Callback then
+				config.Callback(selected)
+			end
 		end)
 	end
 
-	-- ✅ Toggle Dropdown
+	-- ✅ Dropdown toggle
 	button.MouseButton1Click:Connect(function()
 		dropdownOpen = not dropdownOpen
 		listFrame.Visible = dropdownOpen
 	end)
 
+	-- ✅ Public API
 	return {
 		GetValue = function()
-			local selected = {}
-			for k,v in pairs(selectedValues) do if v then table.insert(selected, k) end end
-			return selected
+			local result = {}
+			for k, v in pairs(selectedValues) do
+				if v then table.insert(result, k) end
+			end
+			return result
 		end,
 		SetValue = function(values)
-			for k,_ in pairs(selectedValues) do selectedValues[k] = false end
-			for _, v in ipairs(values) do selectedValues[v] = true end
-			-- update label
+			for k in pairs(selectedValues) do
+				selectedValues[k] = false
+			end
+			for _, v in ipairs(values) do
+				selectedValues[v] = true
+			end
+
+			for _, child in ipairs(listFrame:GetChildren()) do
+				if child:IsA("TextButton") then
+					local label = child.Text:match("☑ (.+)") or child.Text:match("☐ (.+)")
+					if label then
+						child.Text = (selectedValues[label] and "☑ " or "☐ ") .. label
+					end
+				end
+			end
+
 			local selected = {}
-			for k,v in pairs(selectedValues) do if v then table.insert(selected, k) end end
+			for k, v in pairs(selectedValues) do
+				if v then table.insert(selected, k) end
+			end
 			button.Text = config.Title .. ": " .. (#selected > 0 and table.concat(selected, ", ") or "None")
 		end
 	}
